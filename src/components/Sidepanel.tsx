@@ -7,7 +7,7 @@ import { resetSession } from "@/lib/helpers";
 
 function IndexSidePanel() {
   return (
-    <div className="flex flex-col w-full h-screen bg-gray-100">
+    <div className="flex flex-col w-full h-full bg-gray-100">
       <ThumbnailContainer />
       <Separator className="bg-slate-400" />
       <ContentContainer />
