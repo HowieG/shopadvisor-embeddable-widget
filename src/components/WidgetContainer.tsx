@@ -10,7 +10,7 @@ const WidgetContainer = () => {
   return (
     <div>
       <div
-        className={`fixed top-0 bottom-0 right-0 transition-all ease-in-out duration-300 ${
+        className={`fixed top-0 bottom-0 right-0 transition-all ease-in-out duration-300 shadow-lg ${
           isOpen ? "w-80 visible opacity-100" : "w-0 invisible opacity-0"
         }`}
       >
