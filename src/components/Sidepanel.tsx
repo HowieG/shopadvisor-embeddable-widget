@@ -1,10 +1,9 @@
 import { Separator } from "@/components/ui/separator";
-
 import { Button } from "@/components/ui/button";
 import ChatInput from "./ChatInput";
 import ContentContainer from "./ContentContainer";
 import ThumbnailContainer from "./ThumbnailContainer";
-import { resetSession } from "../lib/helpers";
+import { resetSession } from "@/lib/helpers";
 
 function IndexSidePanel() {
   return (
@@ -15,7 +14,7 @@ function IndexSidePanel() {
       <ChatInput />
       <Button
         className="bg-[#E6F0FC] text-slate-600 hover:text-slate-500 hover:bg-[#D0DCEC]"
-        // onClick={resetSession}
+        onClick={resetSession}
       >
         Click to start new session
       </Button>

@@ -1,6 +1,5 @@
 import StarRatings from "react-star-ratings";
-
-import { addProductToStorage } from "../lib/helpers";
+import { addProductToStorage } from "@/lib/helpers";
 
 export default function RecommendedProduct({
   recommendedProduct,

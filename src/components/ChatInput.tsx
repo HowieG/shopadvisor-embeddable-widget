@@ -1,18 +1,65 @@
 import { useEffect, useState } from "preact/hooks";
-
 import {
   addChatResponsesToStorage,
   incrementUserMessageCount,
   sendChatRequest,
-} from "../lib/helpers";
-
-import "@/style.css"; // REMOVE?
-
+} from "@/lib/helpers";
 import { faPhoneVolume, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+
+const handleKeyPress = async (e, text, setText) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    const trimmedText = text.trim();
+    if (trimmedText) {
+      await addChatResponsesToStorage({
+        type: "chat_message",
+        data: {
+          type: "user",
+          text: trimmedText,
+        },
+      });
+      await incrementUserMessageCount();
+      //   await sendChatRequest(trimmedText);
+    }
+    setText("");
+  }
+};
+
+const handleArrowKeyPress = (
+  e,
+  userMessageCount,
+  scrollHistoryIndex,
+  setScrollHistoryIndex,
+  chatResponses,
+  setText
+) => {
+  if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+    e.preventDefault();
+
+    if (userMessageCount === 0) return;
+
+    let newIndex = scrollHistoryIndex;
+
+    if (e.key === "ArrowUp") {
+      if (scrollHistoryIndex > 0) newIndex = scrollHistoryIndex - 1;
+      else return;
+    } else if (e.key === "ArrowDown") {
+      if (scrollHistoryIndex < userMessageCount - 1)
+        newIndex = scrollHistoryIndex + 1;
+      else return;
+    }
+
+    const userMessages: ChatMessage[] = chatResponses
+      .filter((msg) => msg.type === "chat_message" && msg.data.type === "user")
+      .map((msg: ChatMessageResponse) => msg.data);
+
+    setText(userMessages[newIndex]?.text || "");
+    setScrollHistoryIndex(newIndex);
+  }
+};
 
 export default function ChatInput() {
   const [text, setText] = useState("");
@@ -23,53 +70,6 @@ export default function ChatInput() {
   useEffect(() => {
     setScrollHistoryIndex(userMessageCount);
   }, [userMessageCount]);
-
-  const handleKeyPress = async (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      const trimmedText = text.trim();
-      if (trimmedText) {
-        await addChatResponsesToStorage({
-          type: "chat_message",
-          data: {
-            type: "user",
-            text: trimmedText,
-          },
-        });
-        await incrementUserMessageCount();
-        await sendChatRequest(trimmedText);
-      }
-      setText("");
-    }
-  };
-
-  const handleArrowKeyPress = (e) => {
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-
-      if (userMessageCount === 0) return;
-
-      let newIndex = scrollHistoryIndex;
-
-      if (e.key === "ArrowUp") {
-        if (scrollHistoryIndex > 0) newIndex = scrollHistoryIndex - 1;
-        else return;
-      } else if (e.key === "ArrowDown") {
-        if (scrollHistoryIndex < userMessageCount - 1)
-          newIndex = scrollHistoryIndex + 1;
-        else return;
-      }
-
-      const userMessages: ChatMessage[] = chatResponses
-        .filter(
-          (msg) => msg.type === "chat_message" && msg.data.type === "user"
-        )
-        .map((msg: ChatMessageResponse) => msg.data);
-
-      setText(userMessages[newIndex]?.text || "");
-      setScrollHistoryIndex(newIndex);
-    }
-  };
 
   return (
     <div className="flex flex-row gap-1 p-1 bg-white h-100 bg-opacity-60">
@@ -86,8 +86,15 @@ export default function ChatInput() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
-          handleKeyPress(e);
-          handleArrowKeyPress(e);
+          handleKeyPress(e, text, setText);
+          handleArrowKeyPress(
+            e,
+            userMessageCount,
+            scrollHistoryIndex,
+            setScrollHistoryIndex,
+            chatResponses,
+            setText
+          );
         }}
       />
     </div>

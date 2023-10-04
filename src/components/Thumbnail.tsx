@@ -4,7 +4,7 @@ import {
   removeProductFromStorage,
   removeSelectedProductFromStorage,
   updateProductInStorage,
-} from "../lib/helpers";
+} from "@/lib/helpers";
 
 function Thumbnail({
   product,

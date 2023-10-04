@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-
-import "@/style.css"; // REMOVE?
-
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 import ChatMessage from "./ChatMessage";
 import RecommendedProductsContainer from "./RecommendedProductsContainer";
 
@@ -21,7 +17,7 @@ export default function ContentContainer() {
   }, [chatResponses]);
 
   return (
-    <ScrollArea className="flex-grow p-2 bg-gradient-to-b from-rose-100 to-teal-100">
+    <ScrollArea className="flex-grow p-2 text-xs bg-gradient-to-b from-rose-100 to-teal-100">
       <div className="flex flex-col">
         {chatResponses?.map((chatResponse, index) => (
           <div key={index} className="my-1">

@@ -2,15 +2,25 @@ import { v4 as uuidv4 } from "uuid";
 
 type StorageValue = string | number | boolean | object | null;
 
+const NAMESPACE = "ShopAdvisor";
+
 const localStorageInstance = {
   set: function (key: string, value: StorageValue) {
-    localStorage.setItem(key, JSON.stringify(value));
+    const namespacedKey = `${NAMESPACE}.${key}`;
+    localStorage.setItem(namespacedKey, JSON.stringify(value));
   },
   get: async function <T extends StorageValue>(key: string): Promise<T | null> {
-    const item = localStorage.getItem(key);
+    const namespacedKey = `${NAMESPACE}.${key}`;
+    const item = localStorage.getItem(namespacedKey);
     return item ? (JSON.parse(item) as T) : null;
   },
+  log: function (key: string) {
+    const namespacedKey = `${NAMESPACE}.${key}`;
+    const value = localStorage.getItem(namespacedKey);
+    console.log(`Value for ${namespacedKey}:`, value);
+  },
 };
+
 export async function resetSession() {
   localStorageInstance.set("products", []);
   localStorageInstance.set("selected_products", []);
@@ -37,49 +47,49 @@ export async function initChatHistory() {
 
     await addChatResponsesToStorage(chatResponse);
 
-    // let testResponse: ApiRecommendedProductsResponse = {
-    //   type: "recommended_products",
-    //   data: {
-    //     text: "Here are some recommendations based on your requirements:",
-    //     recommended_products: [
-    //       {
-    //         product_url:
-    //           "https://hivebrands.com/collections/all/products/ancient-nutrition-multi-collagen-peptides-capsules",
-    //         image_url:
-    //           "https://hivebrands.com/cdn/shop/products/AncientNutrition_MultiCollagenProtein90ct_Front_475x594_crop_center.jpg?v=1641927270",
-    //         price: "$45.99",
-    //         rating: 0.0,
-    //         num_reviews: 0,
-    //         product_name: "Multi Collagen Peptides Capsules"
-    //       },
-    //       {
-    //         product_url:
-    //           "https://hivebrands.com/collections/all/products/ancient-nutrition-keto-fire-capsules",
-    //         image_url:
-    //           "https://hivebrands.com/cdn/shop/products/AncientNutrition_KetoFire180ct_Front_475x594_crop_center.jpg?v=1641925829",
-    //         price: "$51.79",
-    //         rating: null,
-    //         num_reviews: 0,
-    //         product_name: "Keto Fire Capsules"
-    //       },
-    //       {
-    //         product_url:
-    //           "https://hivebrands.com/collections/all/products/ancient-nutrition-joint-mobility-multi-collagen-peptides-capsules",
-    //         image_url:
-    //           "https://hivebrands.com/cdn/shop/products/AncientNutrition_MultiCollagenProteinJointMobility90ct_Front_475x594_crop_center.jpg?v=1641927728",
-    //         price: "$45.99",
-    //         rating: 3.0,
-    //         num_reviews: 1,
-    //         product_name: "Joint & Mobility Multi Collagen Peptides Capsules"
-    //       }
-    //     ]
-    //   }
-    // }
+    let testResponse: ApiRecommendedProductsResponse = {
+      type: "recommended_products",
+      data: {
+        text: "Here are some recommendations based on your requirements:",
+        recommended_products: [
+          {
+            product_url:
+              "https://hivebrands.com/collections/all/products/ancient-nutrition-multi-collagen-peptides-capsules",
+            image_url:
+              "https://hivebrands.com/cdn/shop/products/AncientNutrition_MultiCollagenProtein90ct_Front_475x594_crop_center.jpg?v=1641927270",
+            price: "$45.99",
+            rating: 0.0,
+            num_reviews: 0,
+            product_name: "Multi Collagen Peptides Capsules",
+          },
+          {
+            product_url:
+              "https://hivebrands.com/collections/all/products/ancient-nutrition-keto-fire-capsules",
+            image_url:
+              "https://hivebrands.com/cdn/shop/products/AncientNutrition_KetoFire180ct_Front_475x594_crop_center.jpg?v=1641925829",
+            price: "$51.79",
+            rating: null,
+            num_reviews: 0,
+            product_name: "Keto Fire Capsules",
+          },
+          {
+            product_url:
+              "https://hivebrands.com/collections/all/products/ancient-nutrition-joint-mobility-multi-collagen-peptides-capsules",
+            image_url:
+              "https://hivebrands.com/cdn/shop/products/AncientNutrition_MultiCollagenProteinJointMobility90ct_Front_475x594_crop_center.jpg?v=1641927728",
+            price: "$45.99",
+            rating: 3.0,
+            num_reviews: 1,
+            product_name: "Joint & Mobility Multi Collagen Peptides Capsules",
+          },
+        ],
+      },
+    };
 
-    // let a = mapApiResponseToTypes(testResponse)
-    // a.map(async (a) => {
-    //   await addChatResponsesToStorage(a)
-    // })
+    let a = mapApiResponseToTypes(testResponse);
+    a.map(async (a) => {
+      await addChatResponsesToStorage(a);
+    });
   }
 }
 

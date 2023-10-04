@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-
-import "@/style.css"; // REMOVE?
-
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import { Label } from "@/components/ui/label";
-
 import Thumbnail from "./Thumbnail";
 
 export default function ThumbnailContainer() {
