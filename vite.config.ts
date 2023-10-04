@@ -10,4 +10,19 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: "dist",
+    assetsDir: "",
+    rollupOptions: {
+      input: "src/index.tsx",
+    },
+  },
+  server: {
+    hmr: {
+      protocol: "ws",
+      host: "localhost",
+    },
+    cors: true,
+    host: "0.0.0.0",
+  },
 });
