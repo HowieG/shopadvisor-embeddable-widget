@@ -124,10 +124,57 @@ export const incrementUserMessageCount = async (): Promise<void> => {
   incrementUserMessageCount();
 };
 
-// export const sendChatRequest = async (chatRequest: string): Promise<void> => {
-//   const { sendChatRequest } = useStore.getState();
-//   sendChatRequest(chatRequest);
-// };
+export const sendChatRequest = async (chatRequest: string): Promise<void> => {
+  const { setHasInteractedWithThumbnail, sessionId } = useStore.getState();
+  setHasInteractedWithThumbnail(true);
+  let body = {
+    query: chatRequest,
+    website_link: await getCurrentWindowUrl(),
+    product_links: await getSelectedProductObjectsFromStorage(),
+    session_id: sessionId,
+  };
+
+  const getChatEndpoint = `${
+    import.meta.env.VITE_SHOPADVISOR_BACKEND_ENDPOINT
+  }/chat`;
+
+  try {
+    const response = await fetch(getChatEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      credentials: "include",
+    });
+
+    let apiChatResponse: ApiChatResponse;
+
+    if (response.ok) {
+      apiChatResponse = await response.json();
+    } else {
+      const errorText = await response.text();
+      const obj = JSON.parse(errorText);
+      console.error(
+        "fetchChatResponse: error. !response.ok. : ",
+        errorText,
+        " | ",
+        obj.detail
+      );
+
+      apiChatResponse = {
+        type: "chat_message",
+        data: { text: obj.detail },
+      };
+    }
+
+    const chatResponses: ChatResponse[] =
+      mapApiResponseToTypes(apiChatResponse);
+    await addChatResponsesToStorage(chatResponses);
+  } catch (err) {
+    console.error("fetchChatResponse err: ", err);
+  }
+};
 
 export const getCurrentWindowUrl = (): Promise<string> => {
   return new Promise((resolve) => {
@@ -141,8 +188,8 @@ export const getSelectedProductObjectsFromStorage = async (): Promise<
   const { getSelectedProductUrls, getProducts } = useStore.getState();
   const selectedProductUrls = getSelectedProductUrls();
   const products = getProducts();
-  return products.filter((product) =>
-    selectedProductUrls.includes(product.product_url)
+  return products?.filter(
+    (product) => selectedProductUrls?.includes(product?.product_url)
   );
 };
 
@@ -163,6 +210,11 @@ export const getImageUrl = (anchor: Element): string => {
     imgElement = anchor;
   } else {
     imgElement = anchor.querySelector("img");
+  }
+
+  if (!imgElement) {
+    console.error("Image element is null or undefined");
+    return null;
   }
 
   let src;

@@ -23,7 +23,7 @@ const handleKeyPress = async (e, text, setText) => {
         },
       });
       await incrementUserMessageCount();
-      //   await sendChatRequest(trimmedText);
+      await sendChatRequest(trimmedText);
     }
     setText("");
   }

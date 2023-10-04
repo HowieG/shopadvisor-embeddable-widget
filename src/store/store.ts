@@ -15,6 +15,7 @@ type State = {
   addProduct: (product: Product, pending: boolean) => void;
   removeProduct: (productUrl: ProductUrl) => void;
   updateProduct: (updatedProduct: Product) => void;
+  setHasInteractedWithThumbnail: (value: boolean) => void;
   incrementUserMessageCount: () => void;
   getSelectedProductUrls: () => ProductUrl[];
   getProducts: () => Product[];
@@ -74,6 +75,8 @@ const store = (set) => ({
       );
       return { products: updatedProducts };
     }),
+  setHasInteractedWithThumbnail: (value: boolean) =>
+    set({ hasInteractedWithThumbnail: value }),
   incrementUserMessageCount: () =>
     set((state) => ({ userMessageCount: state.userMessageCount + 1 })),
   getSelectedProductUrls: () => set((state) => state.selectedProducts),
