@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatMessage from "./ChatMessage";
 import RecommendedProductsContainer from "./RecommendedProductsContainer";
+import useStore from "@/store/store";
 
 export default function ContentContainer() {
-  const [chatResponses] = useState<ChatResponse[]>([]); // port from useStorage
+  const { chatResponses } = useStore((state) => ({
+    chatResponses: state.chatResponses,
+  }));
 
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null); // logic for automatically scrolling to bottom
 

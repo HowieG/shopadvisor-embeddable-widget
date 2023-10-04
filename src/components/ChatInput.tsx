@@ -8,6 +8,7 @@ import { faPhoneVolume, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import useStore from "@/store/store";
 
 const handleKeyPress = async (e, text, setText) => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -63,8 +64,17 @@ const handleArrowKeyPress = (
 
 export default function ChatInput() {
   const [text, setText] = useState("");
-  const [chatResponses] = useState<ChatResponse[]>([]); // port from useStorage
-  const [userMessageCount] = useState<number>(0); // port from useStorage
+  const {
+    chatResponses,
+    userMessageCount,
+    addChatResponses,
+    incrementUserMessageCount,
+  } = useStore((state) => ({
+    chatResponses: state.chatResponses,
+    userMessageCount: state.userMessageCount,
+    addChatResponses: state.addChatResponses,
+    incrementUserMessageCount: state.incrementUserMessageCount,
+  }));
   const [scrollHistoryIndex, setScrollHistoryIndex] = useState(-1);
 
   useEffect(() => {

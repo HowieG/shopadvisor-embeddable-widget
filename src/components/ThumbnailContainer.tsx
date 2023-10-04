@@ -3,10 +3,14 @@ import { faImage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Label } from "@/components/ui/label";
 import Thumbnail from "./Thumbnail";
+import useStore from "@/store/store";
 
 export default function ThumbnailContainer() {
-  const [products] = useState<Product[]>([]); // port from useStorage
-  const [selectedProducts] = useState<ProductUrl[]>([]); // port from useStorage
+  const { products, selectedProducts } = useStore((state) => ({
+    products: state.products,
+    selectedProducts: state.selectedProducts,
+  }));
+
   const thumbnailContainerRef = useRef<HTMLDivElement | null>(null); // logic for automatically scrolling to beg/end of thumbnails
 
   useEffect(() => {

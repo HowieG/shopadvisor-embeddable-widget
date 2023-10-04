@@ -1,53 +1,25 @@
-import { v4 as uuidv4 } from "uuid";
+import useStore from "@/store/store";
 
-type StorageValue = string | number | boolean | object | null;
-
-const NAMESPACE = "ShopAdvisor";
-
-const localStorageInstance = {
-  set: function (key: string, value: StorageValue) {
-    const namespacedKey = `${NAMESPACE}.${key}`;
-    localStorage.setItem(namespacedKey, JSON.stringify(value));
-  },
-  get: async function <T extends StorageValue>(key: string): Promise<T | null> {
-    const namespacedKey = `${NAMESPACE}.${key}`;
-    const item = localStorage.getItem(namespacedKey);
-    return item ? (JSON.parse(item) as T) : null;
-  },
-  log: function (key: string) {
-    const namespacedKey = `${NAMESPACE}.${key}`;
-    const value = localStorage.getItem(namespacedKey);
-    console.log(`Value for ${namespacedKey}:`, value);
-  },
+export const resetSession = () => {
+  useStore.getState().resetSession();
+  initChatHistory();
 };
 
-export async function resetSession() {
-  localStorageInstance.set("products", []);
-  localStorageInstance.set("selected_products", []);
-  localStorageInstance.set("chat_history", []);
-  localStorageInstance.set("user_message_count", 0);
-  localStorageInstance.set("has_interacted_with_thumbnail", false);
-  localStorageInstance.set("session_id", uuidv4());
-  initChatHistory();
-}
+export const initChatHistory = async () => {
+  const { chatResponses, addChatResponses } = useStore.getState();
 
-export async function initChatHistory() {
-  let chatResponses: ChatResponse[] | null =
-    await localStorageInstance.get("chat_history");
   if (!chatResponses || chatResponses.length === 0) {
-    let chatMessage: ChatMessage = {
-      type: "response",
-      text: "Hi, I'm ShopAdvisor! 😊 How can I help?",
-    };
-
-    let chatResponse: ChatMessageResponse = {
+    const chatResponse: ChatMessageResponse = {
       type: "chat_message",
-      data: chatMessage,
+      data: {
+        type: "response",
+        text: "Hi, I'm ShopAdvisor! 😊 How can I help?",
+      },
     };
 
-    await addChatResponsesToStorage(chatResponse);
+    addChatResponses(chatResponse);
 
-    let testResponse: ApiRecommendedProductsResponse = {
+    const testResponse: ApiRecommendedProductsResponse = {
       type: "recommended_products",
       data: {
         text: "Here are some recommendations based on your requirements:",
@@ -86,189 +58,100 @@ export async function initChatHistory() {
       },
     };
 
-    let a = mapApiResponseToTypes(testResponse);
-    a.map(async (a) => {
-      await addChatResponsesToStorage(a);
-    });
+    const a = mapApiResponseToTypes(testResponse);
+    a.forEach(addChatResponses);
   }
-}
+};
 
-export async function getProductsFromStorage(): Promise<Product[]> {
-  const aProduct: Product[] | null = await localStorageInstance.get("products");
-  return aProduct || [];
-}
+export const getProductsFromStorage = async (): Promise<Product[]> => {
+  const { products } = useStore.getState();
+  return products || [];
+};
 
-export async function getProductFromStorage(
+export const getProductFromStorage = async (
   productUrl: ProductUrl
-): Promise<Product> {
-  const aoProduct: Product[] | null =
-    await localStorageInstance.get("products");
-  const matchingProduct = aoProduct.find((p) => p.product_url === productUrl);
+): Promise<Product> => {
+  const { products } = useStore.getState();
+  const matchingProduct = products.find((p) => p.product_url === productUrl);
   return matchingProduct;
-}
+};
 
-export async function getSelectedProductsFromStorage(): Promise<ProductUrl[]> {
-  const aSelectedProduct: ProductUrl[] =
-    (await localStorageInstance.get("selected_products")) || [];
-  return aSelectedProduct;
-}
+export const getSelectedProductsFromStorage = async (): Promise<
+  ProductUrl[]
+> => {
+  const { selectedProducts } = useStore.getState();
+  return selectedProducts;
+};
 
-export async function addSelectedProductToStorage(
+export const addSelectedProductToStorage = async (
   productUrl: ProductUrl
-): Promise<void> {
-  let aSelectedProduct: ProductUrl[] = await getSelectedProductsFromStorage();
-  aSelectedProduct.push(productUrl);
+): Promise<void> => {
+  const { addSelectedProduct } = useStore.getState();
+  addSelectedProduct(productUrl);
+};
 
-  await localStorageInstance.set("selected_products", aSelectedProduct);
-  localStorageInstance.set("has_interacted_with_thumbnail", false);
-  //   console.log(
-  //     "Added selected product ",
-  //     productUrl,
-  //     "to storage. New selected_products: ",
-  //     aSelectedProduct
-  //   )
-}
-
-export async function removeSelectedProductFromStorage(
+export const removeSelectedProductFromStorage = async (
   productUrl: ProductUrl
-): Promise<void> {
-  let aSelectedProduct: ProductUrl[] = await getSelectedProductsFromStorage();
+): Promise<void> => {
+  const { removeSelectedProduct } = useStore.getState();
+  removeSelectedProduct(productUrl);
+};
 
-  const index = aSelectedProduct.indexOf(productUrl);
-  if (index > -1) {
-    aSelectedProduct.splice(index, 1);
-  }
+export const addProductToStorage = async (
+  oProduct: Product,
+  pending = false
+): Promise<void> => {
+  const { addProduct } = useStore.getState();
+  addProduct(oProduct, pending);
+};
 
-  await localStorageInstance.set("selected_products", aSelectedProduct);
-  //   console.log(
-  //     "Removed selected product ",
-  //     productUrl,
-  //     "from storage. New selected_products: ",
-  //     aSelectedProduct
-  //   )
-}
+export const removeProductFromStorage = async (
+  productUrl: ProductUrl
+): Promise<void> => {
+  const { removeProduct } = useStore.getState();
+  removeProduct(productUrl);
+};
 
-export async function addProductToStorage(oProduct: Product, pending = false) {
-  let aoProduct: Product[] = (await getProductsFromStorage()) || [];
+export const updateProductInStorage = async (
+  oUpdatedProduct: Product
+): Promise<void> => {
+  const { updateProduct } = useStore.getState();
+  updateProduct(oUpdatedProduct);
+};
 
-  if (!aoProduct.some((p) => p.product_url === oProduct.product_url)) {
-    if (pending) {
-      // Add to beginning of products array so that it appears as first thumbnail
-      aoProduct.unshift(oProduct);
-    } else {
-      aoProduct.push(oProduct);
-      const hasInteractedWithThumbnail =
-        await localStorageInstance.get<boolean>(
-          "has_interacted_with_thumbnail"
-        );
-      if (hasInteractedWithThumbnail === true) {
-        // If the user has interacted (e.g. chatted) about the thumbnail and they add another thumbnail,
-        // we can assume they're moving on and only want to focus on the new thumbnail so leave only this product in the array
-        await localStorageInstance.set("selected_products", [
-          oProduct.product_url,
-        ]);
-      } else {
-        // If the user has not yet had any interaction with the thumbnail, we can assume they want to take an action that involves
-        // a string of thumbnails (e.g. a comparison), so append this product to the array
-        await addSelectedProductToStorage(oProduct.product_url);
-      }
-    }
-    await localStorageInstance.set("products", aoProduct);
-    // console.log(
-    //   "Added product ",
-    //   oProduct,
-    //   "to storage. New products: ",
-    //   aoProduct
-    // )
-  }
-}
+export const incrementUserMessageCount = async (): Promise<void> => {
+  const { incrementUserMessageCount } = useStore.getState();
+  incrementUserMessageCount();
+};
 
-export async function removeProductFromStorage(productUrl: ProductUrl) {
-  let aoProduct: Product[] = (await getProductsFromStorage()) || [];
-  aoProduct = aoProduct.filter((p) => p.product_url !== productUrl);
-  await localStorageInstance.set("products", aoProduct);
-  //   console.log(
-  //     "Removed product ",
-  //     productUrl,
-  //     "from storage. New products: ",
-  //     aoProduct
-  //   )
+// export const sendChatRequest = async (chatRequest: string): Promise<void> => {
+//   const { sendChatRequest } = useStore.getState();
+//   sendChatRequest(chatRequest);
+// };
 
-  // Also remove from selected products
-  removeSelectedProductFromStorage(productUrl);
-}
-
-export async function updateProductInStorage(oUpdatedProduct) {
-  let aoProduct: Product[] = (await getProductsFromStorage()) || [];
-
-  let productIndex = aoProduct.findIndex(
-    (p) => p.product_url === oUpdatedProduct.product_url
-  );
-  if (productIndex === -1) {
-    console.error(
-      `Product with product_url ${oUpdatedProduct.product_url} not found in storage.`
-    );
-    return;
-  }
-
-  // Replace the old product with the updated one
-  aoProduct[productIndex] = oUpdatedProduct;
-
-  // Save the updated products array back to Chrome storage
-  await localStorageInstance.set("products", aoProduct);
-}
-
-export async function incrementUserMessageCount() {
-  const userMessageCount: number =
-    (await localStorageInstance.get("user_message_count")) ?? 0;
-  await localStorageInstance.set("user_message_count", userMessageCount + 1);
-}
-
-export async function sendChatRequest(chatRequest: string) {
-  await localStorageInstance.set("has_interacted_with_thumbnail", true);
-  //   sendToBackground({
-  //     name: "fetch-chat-response",
-  //     body: {
-  //       query: chatRequest,
-  //       website_link: await getCurrentWindowUrl(),
-  //       product_links: await getSelectedProductObjectsFromStorage(),
-  //       session_id: await localStorageInstance.get("session_id"),
-  //     },
-  //   });
-}
-
-export function getCurrentWindowUrl(): Promise<string> {
+export const getCurrentWindowUrl = (): Promise<string> => {
   return new Promise((resolve) => {
     resolve(window.location.href);
   });
-}
+};
 
-// TODO: edge cases
-export async function getSelectedProductObjectsFromStorage(): Promise<
-  ProductUrl[]
-> {
-  const aSelectedProducts = await getSelectedProductsFromStorage();
-  const aoProducts = await getProductsFromStorage();
-  const filteredProducts = aoProducts?.filter(
-    (product) => aSelectedProducts?.includes(product.product_url)
+export const getSelectedProductObjectsFromStorage = async (): Promise<
+  Product[]
+> => {
+  const { getSelectedProductUrls, getProducts } = useStore.getState();
+  const selectedProductUrls = getSelectedProductUrls();
+  const products = getProducts();
+  return products.filter((product) =>
+    selectedProductUrls.includes(product.product_url)
   );
-  const productUrls: ProductUrl[] = filteredProducts?.map(
-    (product) => product.product_url
-  );
-  return productUrls;
-}
+};
 
-export async function addChatResponsesToStorage(
+export const addChatResponsesToStorage = async (
   chatResponse: ChatResponse | ChatResponse[]
-) {
-  const chatResponses: ChatResponse[] =
-    (await localStorageInstance.get("chat_history")) ?? [];
-  const newChatResponses = Array.isArray(chatResponse)
-    ? chatResponse
-    : [chatResponse];
-  const updatedChatResponses = [...chatResponses, ...newChatResponses];
-  await localStorageInstance.set("chat_history", updatedChatResponses);
-}
+): Promise<void> => {
+  const { addChatResponses } = useStore.getState();
+  addChatResponses(chatResponse);
+};
 
 export const getImageUrl = (anchor: Element): string => {
   let imageUrl: string | null = null;
