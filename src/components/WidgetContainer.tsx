@@ -1,46 +1,24 @@
-import { h, Component } from "preact";
+import { h } from "preact";
 import { useState } from "preact/hooks";
 
 const WidgetContainer = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const containerStyle = {
-    position: "fixed",
-    bottom: "70px",
-    right: "20px",
-    width: "200px",
-    height: isOpen ? "200px" : "0",
-    backgroundColor: "blue",
-    color: "white",
-    padding: isOpen ? "20px" : "0",
-    borderRadius: "10px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    overflow: "hidden",
-    transition: "height 0.3s ease-in-out, padding 0.3s ease-in-out",
-  };
-
-  const buttonStyle = {
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
-    width: "50px",
-    height: "50px",
-    backgroundColor: "red",
-    color: "white",
-    borderRadius: "50%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontSize: "24px",
-    cursor: "pointer",
-  };
-
   return (
     <div>
-      <div style={containerStyle}>
+      <div
+        className={`fixed bottom-16 right-5 p-5 bg-blue-500 text-white rounded-lg shadow-md transition-all ease-in-out duration-300 ${
+          isOpen
+            ? "w-[400px] max-h-[800px] visible opacity-100"
+            : "w-[400px] max-h-0 invisible opacity-0"
+        }`}
+      >
         {isOpen && <p>This is a fixed container</p>}
       </div>
-      <div style={buttonStyle} onClick={() => setIsOpen(!isOpen)}>
+      <div
+        className="fixed flex items-center justify-center w-12 h-12 text-2xl text-white bg-red-500 rounded-full cursor-pointer bottom-5 right-5"
+        onClick={() => setIsOpen(!isOpen)}
+      >
         {isOpen ? "-" : "+"}
       </div>
     </div>
